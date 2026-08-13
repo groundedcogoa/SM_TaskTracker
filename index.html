@@ -196,6 +196,83 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 .sp.done{background:var(--green-l);color:var(--green)}
 .sp.onhold{background:var(--surface2);color:var(--faint)}
 
+/* BOARD VIEW */
+.board-wrap{overflow-x:auto;padding:14px;display:flex;gap:12px;min-height:400px;-webkit-overflow-scrolling:touch}
+.board-col{flex:0 0 230px;display:flex;flex-direction:column;gap:8px}
+.board-col-hdr{padding:9px 12px;border-radius:var(--rs);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.board-col-hdr.pending{background:var(--cold-bg);color:var(--cold)}
+.board-col-hdr.inprogress{background:var(--warm-bg);color:var(--warm)}
+.board-col-hdr.done{background:var(--green-l);color:var(--green)}
+.board-col-hdr.onhold{background:var(--surface2);color:var(--faint)}
+.board-col-cnt{font-size:10px;font-weight:600;opacity:.7}
+.board-cards{display:flex;flex-direction:column;gap:7px;flex:1}
+.bcard{background:var(--surface);border-radius:var(--rs);padding:11px 12px;box-shadow:var(--sh);cursor:pointer;border-top:3px solid transparent;transition:transform .12s,box-shadow .12s;user-select:none}
+.bcard:active{transform:scale(0.97);box-shadow:none}
+.bcard.high{border-top-color:var(--hot)}
+.bcard.medium{border-top-color:var(--warm)}
+.bcard.low{border-top-color:var(--cold)}
+.bcard-name{font-size:13px;font-weight:500;line-height:1.35;margin-bottom:7px;color:var(--text)}
+.bcard-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.bcard-chip{font-size:9.5px;font-weight:500;padding:2px 6px;border-radius:99px;background:var(--green-l);color:var(--green)}
+.bcard-due{font-size:9.5px;color:var(--faint)}
+.bcard-due.overdue{color:var(--hot);font-weight:600}
+.bcard-pri{font-size:10px}
+/* Board quick-update modal */
+.bmodal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.bmodal-bg.open{display:flex}
+.bmodal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 18px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.bmodal-drag{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 16px}
+.bmodal-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.bmodal-sub{font-size:12px;color:var(--faint);margin-bottom:16px}
+.bmodal-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.bmodal-btn{padding:11px 7px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--bg);font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s}
+.bmodal-btn.s-pending{background:var(--cold-bg);border-color:var(--cold);color:var(--cold)}
+.bmodal-btn.s-inprogress{background:var(--warm-bg);border-color:var(--warm);color:var(--warm)}
+.bmodal-btn.s-done{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.bmodal-btn.s-onhold{background:var(--surface2);border-color:var(--faint);color:var(--faint)}
+.bmodal-note{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:none;min-height:60px;margin-bottom:11px;transition:border-color .15s}
+.bmodal-note:focus{border-color:var(--green)}
+.bmodal-save{width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:14px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bmodal-save:disabled{opacity:.5}
+.bmodal-close{position:absolute;top:16px;right:18px;background:none;border:none;font-size:20px;color:var(--faint);cursor:pointer;padding:4px}
+
+/* MEMBER VIEW */
+.mv-screen{display:none}
+.mv-screen.active{display:block}
+.mv-hdr{background:var(--green);padding:20px 20px 52px;position:relative;overflow:hidden}
+.mv-hdr::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.06);top:-40px;right:-20px}
+.mv-avatar{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;margin-bottom:12px;position:relative;z-index:1}
+.mv-name{font-size:22px;font-weight:700;color:#fff;position:relative;z-index:1;line-height:1.1}
+.mv-org{font-size:12px;color:rgba(255,255,255,0.6);margin-top:3px;position:relative;z-index:1}
+.mv-tabs{display:flex;background:rgba(0,0,0,0.18);border-radius:99px;padding:3px;margin:10px 0 0;position:relative;z-index:1}
+.mv-tb{flex:1;padding:7px 4px;border:none;background:transparent;color:rgba(255,255,255,0.6);font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;border-radius:99px;transition:all .2s}
+.mv-tb.active{background:#fff;color:var(--green)}
+.mv-stats{margin:-30px 14px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;position:relative;z-index:2}
+.mv-sc{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);padding:12px 10px;text-align:center}
+.mv-sc-val{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.mv-sc-lbl{font-size:9.5px;color:var(--faint);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
+/* Member task cards */
+.mt-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);margin:10px 14px 0;overflow:hidden;border-left:4px solid transparent}
+.mt-card.pending{border-left-color:var(--cold)}
+.mt-card.inprogress{border-left-color:var(--warm)}
+.mt-card.done{border-left-color:var(--green)}
+.mt-card.onhold{border-left-color:var(--faint)}
+.mt-top{padding:13px 14px 10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mt-task{font-size:14px;font-weight:500;line-height:1.35;flex:1}
+.mt-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:99px;flex-shrink:0;letter-spacing:.04em;text-transform:uppercase}
+.mt-badge.pending{background:var(--cold-bg);color:var(--cold)}
+.mt-badge.inprogress{background:var(--warm-bg);color:var(--warm)}
+.mt-badge.done{background:var(--green-l);color:var(--green)}
+.mt-badge.onhold{background:var(--surface2);color:var(--faint)}
+.mt-meta{padding:0 14px 10px;font-size:11.5px;color:var(--faint);display:flex;gap:10px;flex-wrap:wrap}
+.mt-notes{padding:8px 14px;background:var(--surface2);font-size:12px;color:var(--muted);line-height:1.5;font-style:italic}
+.mt-actions{padding:10px 14px;display:flex;gap:7px;border-top:1px solid var(--border)}
+.mt-act{flex:1;padding:9px 5px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--bg);font-family:inherit;font-size:11.5px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s}
+.mt-act.active-pending{background:var(--cold-bg);border-color:var(--cold);color:var(--cold)}
+.mt-act.active-inprogress{background:var(--warm-bg);border-color:var(--warm);color:var(--warm)}
+.mt-act.active-done{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.mt-saving{font-size:11px;color:var(--faint);text-align:center;padding:4px 14px 8px;display:none}
+
 /* UTIL */
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;color:var(--faint);gap:12px}
 .spinner{width:26px;height:26px;border:2.5px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
@@ -238,19 +315,19 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
   <div class="form-sec">Assign To <span class="req">*</span></div>
   <div class="team-grid" id="teamGrid">
     <!-- Team chips — edit names here and in AppScript HEADERS/dropdowns -->
-    <div class="chip" onclick="selectTeam('Kaushik',this)"><div class="chip-av">Pr</div>Kaushik</div>
-    <div class="chip" onclick="selectTeam('Sakshi',this)"><div class="chip-av">Ro</div>Sakshi</div>
-    <div class="chip" onclick="selectTeam('Aarti',this)"><div class="chip-av">Me</div>Aarti</div>
-    <div class="chip" onclick="selectTeam('Sebby',this)"><div class="chip-av">Am</div>Sebby</div>
+    <div class="chip" onclick="selectTeam('Kaushik',this)"><div class="chip-av">Kk</div>Kaushik</div>
+    <div class="chip" onclick="selectTeam('Sakshi',this)"><div class="chip-av">Sk</div>Sakshik</div>
+    <div class="chip" onclick="selectTeam('Aarti',this)"><div class="chip-av">AA</div>Aarti</div>
     <div class="chip" onclick="selectTeam('Amol',this)"><div class="chip-av">Am</div>Amol</div>
-    <div class="chip" onclick="selectTeam('Prashant',this)"><div class="chip-av">Am</div>Prashant</div>
+    <div class="chip" onclick="selectTeam('Prashant',this)"><div class="chip-av">Pr</div>Prashant</div>
+    <div class="chip" onclick="selectTeam('Sebby',this)"><div class="chip-av">Sb</div>Sebby</div>
   </div>
 
   <div class="field" style="margin-top:14px">
     <label>Assigned By</label>
     <select id="assignedBy">
       <option value="" disabled selected>Who is assigning?</option>
-      <option>Manager</option><option>Kaushik</option><option>Sebby</option><option>Other</option>
+      <option>Sanjay</option><option>KK</option><option>Uncle</option><option>Manager2</option>
     </select>
   </div>
 
@@ -290,12 +367,55 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
     <button class="tb active" onclick="switchDTab('overview',this)">📊 Overview</button>
     <button class="tb" onclick="switchDTab('today',this)">📅 Today</button>
     <button class="tb" onclick="switchDTab('team',this)">👥 Team</button>
+    <button class="tb" onclick="switchDTab('board',this)">🗂 Board</button>
   </div>
 </div>
 <div id="dtab-overview" class="tab-panel active"><div id="overviewContent"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
 <div id="dtab-today" class="tab-panel"><div id="todayContent"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
 <div id="dtab-team" class="tab-panel"><div id="teamContent"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
+<div id="dtab-board" class="tab-panel"><div id="boardContent"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
 <div class="spacer"></div>
+</div>
+
+<!-- ══ SCREEN: MEMBER VIEW ══════════════════════════════════════ -->
+<div id="screen-member" class="mv-screen">
+  <div class="mv-hdr">
+    <div class="mv-avatar" id="mvAvatar">?</div>
+    <div class="mv-name" id="mvName">My Tasks</div>
+    <div class="mv-org">Sai Marketing · Task Manager</div>
+    <div class="mv-tabs">
+      <button class="mv-tb active" onclick="switchMvTab('open',this)">📋 My Tasks</button>
+      <button class="mv-tb" onclick="switchMvTab('done',this)">✅ Completed</button>
+    </div>
+  </div>
+  <div class="mv-stats">
+    <div class="mv-sc"><div class="mv-sc-val warm" id="mvPending">—</div><div class="mv-sc-lbl">Pending</div></div>
+    <div class="mv-sc"><div class="mv-sc-val cold" id="mvInprog">—</div><div class="mv-sc-lbl">In Progress</div></div>
+    <div class="mv-sc"><div class="mv-sc-val done" id="mvDone">—</div><div class="mv-sc-lbl">Done</div></div>
+  </div>
+  <div id="mvTabOpen" class="tab-panel active" style="margin-top:8px"><div class="loading"><div class="spinner"></div>Loading your tasks...</div></div>
+  <div id="mvTabDone" class="tab-panel" style="margin-top:8px"></div>
+  <div style="text-align:center;padding:18px 0 30px;font-size:10px;color:var(--faint);">
+    Powered by <a href="https://groundedco.in" target="_blank" style="color:var(--faint);text-decoration:none;border-bottom:1px solid var(--border);">groundedco.in</a>
+  </div>
+</div>
+
+<!-- Board quick-update modal -->
+<div class="bmodal-bg" id="bmodalBg" onclick="closeBModal(event)">
+  <div class="bmodal" style="position:relative">
+    <button class="bmodal-close" onclick="closeBModal()">✕</button>
+    <div class="bmodal-drag"></div>
+    <div class="bmodal-title" id="bmodalTitle">Task</div>
+    <div class="bmodal-sub" id="bmodalSub"></div>
+    <div class="bmodal-grid">
+      <button class="bmodal-btn" onclick="setBModalStatus('Pending',this,'s-pending')">⏳ Pending</button>
+      <button class="bmodal-btn" onclick="setBModalStatus('In Progress',this,'s-inprogress')">🔄 In Progress</button>
+      <button class="bmodal-btn" onclick="setBModalStatus('Done',this,'s-done')">✅ Done</button>
+      <button class="bmodal-btn" onclick="setBModalStatus('On Hold',this,'s-onhold')">⏸ On Hold</button>
+    </div>
+    <textarea class="bmodal-note" id="bmodalNote" placeholder="Add a note (optional)..."></textarea>
+    <button class="bmodal-save" id="bmodalSave" onclick="saveBModal()">Save Update →</button>
+  </div>
 </div>
 
 <!-- ══ SCREEN: UPDATE ══════════════════════════════════════════════ -->
@@ -401,6 +521,7 @@ function switchDTab(id,btn){
   if(allTasks.length){
     if(id==='today') renderToday(allTasks);
     if(id==='team') renderTeam(allTasks);
+    if(id==='board') renderBoard(allTasks);
   }
 }
 
@@ -687,6 +808,199 @@ function parseDate(str){
   if(p.length===3&&p[2].length===4) return new Date(+p[2],+p[1]-1,+p[0]);
   const d=new Date(s); return isNaN(d)?null:d;
 }
+
+// ══ BOARD VIEW ════════════════════════════════════════════════════
+let bmodalTask=null, bmodalStatus='';
+
+function renderBoard(tasks){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const cols=[
+    {key:'Pending',    cls:'pending',    lbl:'⏳ Pending'},
+    {key:'In Progress',cls:'inprogress', lbl:'🔄 In Progress'},
+    {key:'Done',       cls:'done',       lbl:'✅ Done'},
+    {key:'On Hold',    cls:'onhold',     lbl:'⏸ On Hold'},
+  ];
+  // member colours — cycle through a palette
+  const palette=['#2d5a3d','#1e4f8a','#b87020','#c94030','#4a2d8a','#4a8a60'];
+  const people=[...new Set(tasks.map(t=>t['Assigned To']).filter(Boolean))];
+  const pColor={};
+  people.forEach((p,i)=>pColor[p]=palette[i%palette.length]);
+
+  const html=`<div class="board-wrap">`+cols.map(col=>{
+    const cards=tasks.filter(t=>t['Status']===col.key);
+    return`<div class="board-col">
+      <div class="board-col-hdr ${col.cls}">${col.lbl}<span class="board-col-cnt">${cards.length}</span></div>
+      <div class="board-cards">${cards.length?cards.map(t=>{
+        const pri=(t['Priority']||'low').toLowerCase();
+        const d=parseDate(t['Due Date']);
+        const isOverdue=d&&d<today&&t['Status']!=='Done';
+        const assignee=t['Assigned To']||'—';
+        const color=pColor[assignee]||'#2d5a3d';
+        return`<div class="bcard ${pri}" onclick='openBModal(${JSON.stringify(t).replace(/'/g,"&#39;")})'>
+          <div class="bcard-name">${t['Task Name']||'—'}</div>
+          <div class="bcard-meta">
+            <span class="bcard-chip" style="background:${color}20;color:${color}">${assignee}</span>
+            <span class="bcard-pri">${PE[t['Priority']]||''}</span>
+            ${t['Due Date']?`<span class="bcard-due${isOverdue?' overdue':''}">📅 ${t['Due Date']}</span>`:''}
+          </div>
+        </div>`;
+      }).join(''):'<div class="empty" style="font-size:12px;padding:16px 8px">Nothing here</div>'}</div>
+    </div>`;
+  }).join('')+`</div>`;
+  document.getElementById('boardContent').innerHTML=html;
+}
+
+function openBModal(task){
+  bmodalTask=task; bmodalStatus=task['Status']||'';
+  document.getElementById('bmodalTitle').textContent=task['Task Name']||'—';
+  document.getElementById('bmodalSub').textContent=(task['Task ID']||'')+(task['Assigned To']?' · '+task['Assigned To']:'')+(task['Due Date']?' · Due '+task['Due Date']:'');
+  document.getElementById('bmodalNote').value='';
+  // pre-highlight current status
+  document.querySelectorAll('.bmodal-btn').forEach(b=>b.className='bmodal-btn');
+  const map={'Pending':'s-pending','In Progress':'s-inprogress','Done':'s-done','On Hold':'s-onhold'};
+  const cur=document.querySelector(`.bmodal-btn[onclick*="${task['Status']}"]`);
+  if(cur&&map[task['Status']])cur.classList.add(map[task['Status']]);
+  document.getElementById('bmodalBg').classList.add('open');
+  document.getElementById('bmodalSave').disabled=false;
+  document.getElementById('bmodalSave').textContent='Save Update →';
+}
+
+function closeBModal(e){
+  if(e&&e.target!==document.getElementById('bmodalBg'))return;
+  document.getElementById('bmodalBg').classList.remove('open');
+  bmodalTask=null; bmodalStatus='';
+}
+
+function setBModalStatus(val,el,cls){
+  bmodalStatus=val;
+  document.querySelectorAll('.bmodal-btn').forEach(b=>b.className='bmodal-btn');
+  el.classList.add(cls);
+}
+
+async function saveBModal(){
+  if(!bmodalTask||!bmodalStatus){alert('Please select a status.');return;}
+  const btn=document.getElementById('bmodalSave');
+  btn.disabled=true; btn.textContent='Saving...';
+  const note=document.getElementById('bmodalNote').value.trim();
+  try{await postData({action:'update',taskId:bmodalTask['Task ID'],status:bmodalStatus,notes:note});}catch(e){console.warn(e);}
+  const idx=allTasks.findIndex(t=>t['Task ID']===bmodalTask['Task ID']);
+  if(idx>-1){allTasks[idx]['Status']=bmodalStatus;if(note)allTasks[idx]['Notes']=note;}
+  document.getElementById('bmodalBg').classList.remove('open');
+  bmodalTask=null; bmodalStatus='';
+  renderBoard(allTasks);
+  renderOverview(allTasks);
+}
+
+// ══ MEMBER VIEW ══════════════════════════════════════════════════
+let memberName='', memberTasks=[], mvSelTask=null, mvSelStatus='';
+
+function initMemberView(name){
+  memberName=name;
+  document.getElementById('mvName').textContent=name;
+  document.getElementById('mvAvatar').textContent=name.substring(0,2).toUpperCase();
+  loadMemberTasks();
+}
+
+async function loadMemberTasks(){
+  document.getElementById('mvTabOpen').innerHTML='<div class="loading"><div class="spinner"></div>Loading your tasks...</div>';
+  try{
+    const json=await fetchTasks();
+    const all=(json.tasks||[]).filter(t=>t['Task Name']&&String(t['Task Name']).trim()!=='');
+    memberTasks=all.filter(t=>(t['Assigned To']||'').toLowerCase()===memberName.toLowerCase());
+    renderMemberView();
+  }catch(err){
+    document.getElementById('mvTabOpen').innerHTML='<div class="empty" style="padding:40px 20px"><div style="font-size:24px;margin-bottom:10px">⚠️</div>Could not load tasks.<br><button onclick="loadMemberTasks()" style="margin-top:12px;padding:8px 20px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer">Try Again</button></div>';
+  }
+}
+
+function renderMemberView(){
+  const open=memberTasks.filter(t=>t['Status']!=='Done');
+  const done=memberTasks.filter(t=>t['Status']==='Done');
+  const pending=memberTasks.filter(t=>t['Status']==='Pending').length;
+  const inprog=memberTasks.filter(t=>t['Status']==='In Progress').length;
+  document.getElementById('mvPending').textContent=pending;
+  document.getElementById('mvInprog').textContent=inprog;
+  document.getElementById('mvDone').textContent=done.length;
+
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  function mkCard(t){
+    const rawSt=t['Status']||'Pending';
+    const stCls=rawSt.toLowerCase().replace(/\s/g,'');
+    const d=parseDate(t['Due Date']);
+    const isOverdue=d&&d<today&&rawSt!=='Done';
+    const isDueToday=d&&d.getTime()===today.getTime()&&rawSt!=='Done';
+    return`<div class="mt-card ${stCls}" id="mc-${t['Task ID']}">
+      <div class="mt-top">
+        <div class="mt-task">${t['Task Name']||'—'}</div>
+        <span class="mt-badge ${stCls}">${rawSt}</span>
+      </div>
+      <div class="mt-meta">
+        <span>${t['Task ID']||''}</span>
+        ${t['Due Date']?`<span style="${isOverdue?'color:var(--hot);font-weight:600':isDueToday?'color:var(--warm);font-weight:600':''}">📅 ${isOverdue?'OVERDUE · ':isDueToday?'Due today · ':'Due '}${t['Due Date']}</span>`:''}
+        <span>${PE[t['Priority']]||''} ${t['Priority']||''}</span>
+        ${t['Category']?`<span>${t['Category']}</span>`:''}
+      </div>
+      ${t['Notes']?`<div class="mt-notes">"${t['Notes']}"</div>`:''}
+      ${rawSt!=='Done'?`
+      <div class="mt-actions">
+        <button class="mt-act${rawSt==='Pending'?' active-pending':''}" onclick="mvUpdateStatus('${t['Task ID']}','Pending',this)">⏳ Pending</button>
+        <button class="mt-act${rawSt==='In Progress'?' active-inprogress':''}" onclick="mvUpdateStatus('${t['Task ID']}','In Progress',this)">🔄 Started</button>
+        <button class="mt-act${rawSt==='Done'?' active-done':''}" onclick="mvUpdateStatus('${t['Task ID']}','Done',this)">✅ Done</button>
+      </div>
+      <div class="mt-saving" id="ms-${t['Task ID']}">Saving...</div>
+      `:'<div style="padding:8px 14px;font-size:11.5px;color:var(--green);">✅ Completed${t["Completed At"]?" · "+t["Completed At"]:""}</div>'}
+    </div>`;
+  }
+
+  document.getElementById('mvTabOpen').innerHTML=open.length
+    ? open.map(mkCard).join('')+'<div class="spacer"></div>'
+    : '<div class="empty" style="padding:40px 20px"><div style="font-size:32px;margin-bottom:12px">🎉</div><div style="font-weight:600;margin-bottom:6px">All done!</div><div style="font-size:13px">No open tasks right now.</div></div>';
+
+  document.getElementById('mvTabDone').innerHTML=done.length
+    ? done.map(mkCard).join('')+'<div class="spacer"></div>'
+    : '<div class="empty" style="padding:30px 20px">No completed tasks yet.</div>';
+}
+
+async function mvUpdateStatus(taskId,newStatus,btn){
+  const card=document.getElementById('mc-'+taskId);
+  const saving=document.getElementById('ms-'+taskId);
+  // optimistic UI
+  card.querySelectorAll('.mt-act').forEach(b=>b.className='mt-act');
+  btn.classList.add('active-'+newStatus.toLowerCase().replace(/\s/g,''));
+  if(saving)saving.style.display='block';
+  try{await postData({action:'update',taskId,status:newStatus});}catch(e){console.warn(e);}
+  const idx=memberTasks.findIndex(t=>t['Task ID']===taskId);
+  if(idx>-1) memberTasks[idx]['Status']=newStatus;
+  // Also update allTasks so board/overview stay in sync
+  const gi=allTasks.findIndex(t=>t['Task ID']===taskId);
+  if(gi>-1) allTasks[gi]['Status']=newStatus;
+  // Re-render after short delay
+  setTimeout(()=>renderMemberView(),600);
+}
+
+function switchMvTab(id,btn){
+  document.querySelectorAll('#screen-member .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mv-tb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mvTab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══ URL DETECTION — runs on page load ════════════════════════════
+(function detectMemberUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const member=params.get('member');
+  if(member){
+    // Hide manager UI, show member view
+    document.querySelector('.bottom-nav').style.display='none';
+    document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
+    document.getElementById('screen-member').classList.add('active');
+    // Hide powered-by footer in main (member view has its own)
+    const pf=document.querySelector('body > div[style*="groundedco"]');
+    if(pf)pf.style.display='none';
+    initMemberView(decodeURIComponent(member));
+  }
+})();
 </script>
 
 <!-- Powered by footer — sits above the bottom nav -->
