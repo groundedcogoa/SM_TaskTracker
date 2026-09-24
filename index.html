@@ -273,6 +273,25 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 .mt-act.active-done{background:var(--green-l);border-color:var(--green);color:var(--green)}
 .mt-saving{font-size:11px;color:var(--faint);text-align:center;padding:4px 14px 8px;display:none}
 
+
+/* PIN LOGIN SCREEN */
+.pin-screen{position:fixed;inset:0;background:var(--green);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.pin-logo{width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px;overflow:hidden}
+.pin-logo img{width:100%;height:100%;object-fit:contain}
+.pin-org{font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.pin-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;text-align:center}
+.pin-sub{font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:36px;text-align:center}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);background:transparent;transition:all .15s}
+.pin-dot.filled{background:#fff;border-color:#fff}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px}
+.pin-key{background:rgba(255,255,255,0.12);border:none;border-radius:14px;padding:18px 10px;font-family:inherit;font-size:22px;font-weight:600;color:#fff;cursor:pointer;transition:all .12s;user-select:none}
+.pin-key:active{background:rgba(255,255,255,0.28);transform:scale(0.95)}
+.pin-key.del{font-size:16px}
+.pin-key.empty{background:transparent;cursor:default}
+.pin-error{color:rgba(255,80,80,0.9);font-size:13px;font-weight:500;margin-top:14px;min-height:20px;text-align:center}
+.pin-screen.hidden{display:none}
+
 /* UTIL */
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;color:var(--faint);gap:12px}
 .spinner{width:26px;height:26px;border:2.5px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
@@ -286,7 +305,7 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 <!-- ══ SCREEN: ASSIGN TASK ══════════════════════════════════════ -->
 <div id="screen-form" class="screen active">
 <div class="hdr">
-  <div class="brand"><div class="brand-dot">SM</div><span class="brand-name">Sai Marketing</span></div>
+  <div class="brand"><div class="brand-dot" style="background:transparent;padding:0;overflow:hidden;width:36px;height:36px;border-radius:8px;"><img src="https://groundedcogoa.github.io/SM_TaskTracker/logo.png" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='SM'"></div><span class="brand-name">Sai Marketing</span></div>
   <h1>Assign a Task</h1>
   <div class="hdr-sub">Fill in details — takes under a minute</div>
 </div>
@@ -302,7 +321,7 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
       <option>Finance</option><option>Client Follow-up</option><option>Other</option>
     </select>
   </div>
-  <div class="field"><label>Due Date <span class="req">*</span></label><input type="date" id="dueDate"></div>
+  <div class="field"><label>Due Date <span class="req">*</span></label><input type="text" id="dueDate" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" maxlength="10" inputmode="numeric" autocomplete="off"></div>
   <div class="field"><label>Notes / Instructions</label><textarea id="notes" placeholder="Any context, references, or specific instructions..."></textarea></div>
 
   <div class="form-sec">Priority <span class="req">*</span></div>
@@ -322,11 +341,11 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
     <div class="chip" onclick="selectTeam('Prashant',this)" style="grid-column:span 2"><div class="chip-av">Pr</div>Prashant</div>
   </div>
 
-  <div class="field" style="margin-top:14px">
+  <div class="field" style="display:none">
     <label>Assigned By</label>
     <select id="assignedBy">
       <option value="" disabled selected>Who is assigning?</option>
-      <option>Manager</option><option>Manager 2</option>
+      <option>Sanjay</option>
     </select>
   </div>
 
@@ -357,7 +376,7 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 <div id="screen-dashboard" class="screen">
 <div class="hdr">
   <div class="hdr-top">
-    <div class="brand"><div class="brand-dot">SM</div><span class="brand-name">Sai Marketing</span></div>
+    <div class="brand"><div class="brand-dot" style="background:transparent;padding:0;overflow:hidden;width:36px;height:36px;border-radius:8px;"><img src="https://groundedcogoa.github.io/SM_TaskTracker/logo.png" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='SM'"></div><span class="brand-name">Sai Marketing</span></div>
     <button class="refresh-btn" onclick="loadDashboard(true)">↻ Refresh</button>
   </div>
   <h1>Task Dashboard</h1>
@@ -420,7 +439,7 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 <!-- ══ SCREEN: UPDATE ══════════════════════════════════════════════ -->
 <div id="screen-update" class="screen">
 <div class="hdr">
-  <div class="brand"><div class="brand-dot">SM</div><span class="brand-name">Sai Marketing</span></div>
+  <div class="brand"><div class="brand-dot" style="background:transparent;padding:0;overflow:hidden;width:36px;height:36px;border-radius:8px;"><img src="https://groundedcogoa.github.io/SM_TaskTracker/logo.png" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='SM'"></div><span class="brand-name">Sai Marketing</span></div>
   <h1>Update Task</h1>
   <div class="hdr-sub">Search by name, person or task ID</div>
 </div>
@@ -431,6 +450,37 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 <div id="taskResultArea"></div>
 <div class="qr-list" id="quickList"></div>
 <div class="spacer"></div>
+</div>
+
+<!-- PIN LOGIN SCREEN -->
+<div class="pin-screen" id="pinScreen">
+  <div class="pin-logo">
+    <img src="https://groundedcogoa.github.io/SM_TaskTracker/logo.png" onerror="this.parentElement.innerHTML='<span style=\'font-size:22px;font-weight:700;color:#fff\'>SM</span>'">
+  </div>
+  <div class="pin-org">Sai Marketing</div>
+  <div class="pin-title">Task Manager</div>
+  <div class="pin-sub">Enter your 4-digit PIN to continue</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <div class="pin-key empty"></div>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">&#9003;</button>
+  </div>
+  <div class="pin-error" id="pinError"></div>
 </div>
 
 <!-- ══ BOTTOM NAV ══════════════════════════════════════════════════ -->
@@ -450,6 +500,117 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 </nav>
 
 <script>
+// ══ TEAM REGISTRY — single source of truth ═══════════════════
+// PIN 0011 = Manager (Sanjay) — sees full app
+// PINs 0012-0016 = Team — see their own tasks only
+const TEAM = {
+  '0011': { name:'Sanjay',   role:'Manager',  isManager:true  },
+  '0012': { name:'Arti',     role:'Purchase', isManager:false },
+  '0013': { name:'Kaushik',  role:'Admin',    isManager:false },
+  '0014': { name:'Sakshi',   role:'Billing',  isManager:false },
+  '0015': { name:'Amol',     role:'Sales',    isManager:false },
+  '0016': { name:'Prashant', role:'Sales',    isManager:false },
+};
+
+// ══ PIN SYSTEM ════════════════════════════════════════════════
+let pinBuffer = '';
+let currentUser = null;
+
+function pinKey(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function checkPin() {
+  const user = TEAM[pinBuffer];
+  if (!user) {
+    document.getElementById('pinError').textContent = 'Incorrect PIN. Please try again.';
+    // Shake dots
+    const dots = document.getElementById('pinDots');
+    dots.style.animation = 'none';
+    dots.offsetHeight; // reflow
+    dots.style.animation = 'shake .4s ease';
+    setTimeout(() => { pinBuffer = ''; updatePinDots(); }, 500);
+    return;
+  }
+  currentUser = { ...user, pin: pinBuffer };
+  document.getElementById('pinScreen').classList.add('hidden');
+  if (user.isManager) {
+    launchManager();
+  } else {
+    launchMember(user.name);
+  }
+}
+
+function launchManager() {
+  document.querySelector('.bottom-nav').style.display = 'flex';
+  document.querySelectorAll('.screen').forEach(s => s.style.display = '');
+  showScreen('form');
+}
+
+function launchMember(name) {
+  document.querySelector('.bottom-nav').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+  document.getElementById('screen-member').classList.add('active');
+  window._deepLinkTask   = null;
+  window._deepLinkStatus = null;
+  initMemberView(name);
+}
+
+// Add shake animation to head
+(function addShakeStyle(){
+  const s = document.createElement('style');
+  s.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}';
+  document.head.appendChild(s);
+})();
+
+// ══ DATE HELPERS — dd/mm/yyyy ══════════════════════════════════
+function formatDateDMY(dateStr) {
+  // Converts yyyy-mm-dd OR Date object to dd/mm/yyyy
+  if (!dateStr) return '';
+  if (dateStr instanceof Date) {
+    const d = dateStr;
+    return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+  }
+  const s = String(dateStr).trim();
+  // already dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  // yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y,m,d] = s.split('-');
+    return d+'/'+m+'/'+y;
+  }
+  return s;
+}
+
+// Auto-format date input as user types: 01/06/2026
+document.addEventListener('DOMContentLoaded', () => {
+  const di = document.getElementById('dueDate');
+  if (di) {
+    di.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'');
+      if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
+      if (v.length > 5) v = v.slice(0,5)+'/'+v.slice(5);
+      if (v.length > 10) v = v.slice(0,10);
+      this.value = v;
+    });
+  }
+});
+
 // ══ CONFIG — update this URL after deploying your AppScript ══
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlahZBpUC1aadK9UdXUG7EL2HA8pUOw8q3SHE4Nk5c080gMVWNVPOFbTJvaXJmxGoVqA/exec';
 const PE = { High:'🔴', Medium:'🟡', Low:'🔵' };
@@ -649,21 +810,24 @@ async function submitTask(){
   if(!selPriority)missing.push('Priority');
   if(!selTeam)missing.push('Assign To');
   if(!dueDate)missing.push('Due Date');
-  if(missing.length){alert('Please complete:\n• '+missing.join('\n• '));return;}
+  if(dueDate && !/^\d{2}\/\d{2}\/\d{4}$/.test(dueDate)){missing.push('Due Date format must be DD/MM/YYYY');}
+  if(missing.length){alert('Please complete:\n\u2022 '+missing.join('\n\u2022 '));return;}
 
   const btn=document.getElementById('submitBtn');
   btn.disabled=true; btn.textContent='Saving to sheet...';
+
+  const assignedBy = currentUser ? currentUser.name : (g('assignedBy')||'Manager');
 
   const payload={
     action:'new',
     taskName,
     assignedTo:selTeam,
     phone:'',
-    dueDate,
+    dueDate,   // already dd/mm/yyyy
     priority:selPriority,
     category:category||'Other',
     notes:g('notes'),
-    assignedBy:g('assignedBy')||'Manager'
+    assignedBy
   };
 
   try{await postData(payload);}catch(err){console.warn(err);}
@@ -1032,22 +1196,19 @@ function switchMvTab(id,btn){
   const params=new URLSearchParams(window.location.search);
   const member=params.get('member');
   const taskId=params.get('task');
-  const autoStatus=params.get('status'); // pre-set status from email button
+  const autoStatus=params.get('status');
 
   if(member){
-    // Hide manager UI, show member view
+    // Deep link from email — bypass PIN, go straight to member view
+    document.getElementById('pinScreen').classList.add('hidden');
     document.querySelector('.bottom-nav').style.display='none';
     document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
     document.getElementById('screen-member').classList.add('active');
-    const pf=document.querySelector('body > div[style*="groundedco"]');
-    if(pf)pf.style.display='none';
-
-    // Store task + status to act on after tasks load
     window._deepLinkTask   = taskId   || null;
     window._deepLinkStatus = autoStatus || null;
-
     initMemberView(decodeURIComponent(member));
   }
+  // If no ?member= param, PIN screen shows (it's visible by default)
 })();
 </script>
 
