@@ -315,19 +315,18 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
   <div class="form-sec">Assign To <span class="req">*</span></div>
   <div class="team-grid" id="teamGrid">
     <!-- Team chips — edit names here and in AppScript HEADERS/dropdowns -->
-    <div class="chip" onclick="selectTeam('Kaushik',this)"><div class="chip-av">Kk</div>Kaushik</div>
-    <div class="chip" onclick="selectTeam('Sakshi',this)"><div class="chip-av">Sk</div>Sakshik</div>
-    <div class="chip" onclick="selectTeam('Arti',this)"><div class="chip-av">AA</div>Arti</div>
-    <div class="chip" onclick="selectTeam('Amol',this)"><div class="chip-av">Am</div>Amol</div>
-    <div class="chip" onclick="selectTeam('Prashant',this)"><div class="chip-av">Pr</div>Prashant</div>
-    <div class="chip" onclick="selectTeam('Sebby',this)"><div class="chip-av">Sb</div>Sebby</div>
+    <div class="chip" onclick="selectTeam('Priya',this)"><div class="chip-av">Pr</div>Priya</div>
+    <div class="chip" onclick="selectTeam('Rohan',this)"><div class="chip-av">Ro</div>Rohan</div>
+    <div class="chip" onclick="selectTeam('Meera',this)"><div class="chip-av">Me</div>Meera</div>
+    <div class="chip" onclick="selectTeam('Amit',this)"><div class="chip-av">Am</div>Amit</div>
+    <div class="chip" onclick="selectTeam('Deepa',this)" style="grid-column:span 2"><div class="chip-av">De</div>Deepa</div>
   </div>
 
   <div class="field" style="margin-top:14px">
     <label>Assigned By</label>
     <select id="assignedBy">
       <option value="" disabled selected>Who is assigning?</option>
-      <option>Sanjay</option><option>KK</option><option>Uncle</option><option>Manager2</option>
+      <option>Manager</option><option>Priya</option><option>Rohan</option><option>Meera</option>
     </select>
   </div>
 
@@ -955,11 +954,53 @@ function renderMemberView(){
 
   document.getElementById('mvTabOpen').innerHTML=open.length
     ? open.map(mkCard).join('')+'<div class="spacer"></div>'
-    : '<div class="empty" style="padding:40px 20px"><div style="font-size:32px;margin-bottom:12px">🎉</div><div style="font-weight:600;margin-bottom:6px">All done!</div><div style="font-size:13px">No open tasks right now.</div></div>';
+    : '<div class="empty" style="padding:40px 20px"><div style="font-size:32px;margin-bottom:12px">All done!</div><div style="font-weight:600;margin-bottom:6px">No open tasks right now.</div></div>';
 
   document.getElementById('mvTabDone').innerHTML=done.length
     ? done.map(mkCard).join('')+'<div class="spacer"></div>'
     : '<div class="empty" style="padding:30px 20px">No completed tasks yet.</div>';
+
+  // ── Deep link: scroll to task + auto-apply status from email button ──
+  if(window._deepLinkTask){
+    const targetId='mc-'+window._deepLinkTask;
+    setTimeout(()=>{
+      const el=document.getElementById(targetId);
+      if(el){
+        // Highlight the card
+        el.style.transition='box-shadow .3s, border .3s';
+        el.style.boxShadow='0 0 0 3px #2d5a3d';
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+        // Auto-apply status if passed via URL
+        if(window._deepLinkStatus){
+          const statusMap={'In Progress':'inprogress','Done':'done','On Hold':'onhold','Pending':'pending'};
+          const cls=statusMap[window._deepLinkStatus]||'pending';
+          const btn=el.querySelector('.mt-act');
+          // find the matching button
+          el.querySelectorAll('.mt-act').forEach(b=>{
+            if(b.textContent.trim().toLowerCase().includes(window._deepLinkStatus.toLowerCase().split('+')[0])){
+              b.click();
+            }
+          });
+          // Show a toast
+          const toast=document.createElement('div');
+          toast.textContent='Status updated to "'+window._deepLinkStatus+'"';
+          toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2d5a3d;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:300;box-shadow:0 4px 12px rgba(0,0,0,0.2)';
+          document.body.appendChild(toast);
+          setTimeout(()=>toast.remove(),3500);
+        }
+        // Remove highlight after 3s
+        setTimeout(()=>{ el.style.boxShadow=''; },3000);
+      } else {
+        // Task might be in Done tab — switch to it
+        const doneEl=document.getElementById('mvTabDone').querySelector('#'+targetId);
+        if(doneEl){
+          switchMvTab('done', document.querySelectorAll('.mv-tb')[1]);
+          setTimeout(()=>{ doneEl.style.boxShadow='0 0 0 3px #2d5a3d'; doneEl.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(()=>doneEl.style.boxShadow='',3000); },200);
+        }
+      }
+      window._deepLinkTask=null; window._deepLinkStatus=null; // run once
+    }, 400);
+  }
 }
 
 async function mvUpdateStatus(taskId,newStatus,btn){
@@ -990,14 +1031,21 @@ function switchMvTab(id,btn){
 (function detectMemberUrl(){
   const params=new URLSearchParams(window.location.search);
   const member=params.get('member');
+  const taskId=params.get('task');
+  const autoStatus=params.get('status'); // pre-set status from email button
+
   if(member){
     // Hide manager UI, show member view
     document.querySelector('.bottom-nav').style.display='none';
     document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
     document.getElementById('screen-member').classList.add('active');
-    // Hide powered-by footer in main (member view has its own)
     const pf=document.querySelector('body > div[style*="groundedco"]');
     if(pf)pf.style.display='none';
+
+    // Store task + status to act on after tasks load
+    window._deepLinkTask   = taskId   || null;
+    window._deepLinkStatus = autoStatus || null;
+
     initMemberView(decodeURIComponent(member));
   }
 })();
