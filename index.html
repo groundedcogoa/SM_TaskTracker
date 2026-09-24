@@ -112,7 +112,7 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 .field{margin-bottom:11px}
 .field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px}
 .field input,.field select,.field textarea{width:100%;background:var(--bg);border:1.5px solid transparent;border-radius:var(--rs);padding:11px 13px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .15s,background .15s;appearance:none;-webkit-appearance:none}
-.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23b0ada6' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-color:var(--bg);padding-right:34px}
+.field select{background-image:("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23b0ada6' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-color:var(--bg);padding-right:34px}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);background:#fff}
 .field input::placeholder,.field textarea::placeholder{color:var(--faint)}
 .field textarea{resize:none;min-height:74px;line-height:1.5}
@@ -609,7 +609,7 @@ function formatDateDMY(dateStr) {
 // ════════════════════════════════════════════════════════════════
 // PASTE YOUR APPS SCRIPT WEB APP URL BELOW (ends in /exec)
 // ════════════════════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYDbm0z4r4rB55ZKmgQWaSY4EdnGf_646l0rhqmNCcu4F2xz212ITdPgFdFMNAG8QW/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7Wtdjhv9TZnw9BGAa2PFphpdELWIZDcFCv6mWoD41SD-STBpMuc7r38XcbC0rVsM/exec';
 const URL_READY  = /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SCRIPT_URL);
 const PE = { High:'🔴', Medium:'🟡', Low:'🔵' };
 const STATUS_LABEL = { 'Pending':'⏳ Pending','In Progress':'🔄 In Progress','Done':'✅ Done','On Hold':'⏸ On Hold' };
