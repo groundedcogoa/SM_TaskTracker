@@ -271,6 +271,12 @@ body{font-family:system-ui,-apple-system,sans-serif;color:var(--text);font-size:
 .mt-act.active-pending{background:var(--cold-bg);border-color:var(--cold);color:var(--cold)}
 .mt-act.active-inprogress{background:var(--warm-bg);border-color:var(--warm);color:var(--warm)}
 .mt-act.active-done{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.mt-notes{white-space:normal;font-style:normal}
+.mt-note-wrap{display:flex;gap:7px;padding:10px 14px;border-top:1px solid var(--border);align-items:flex-end}
+.mt-note{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:9px 11px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical;min-height:38px;line-height:1.4}
+.mt-note:focus{border-color:var(--green);background:#fff}
+.mt-note-btn{background:var(--green);color:#fff;border:none;border-radius:var(--rs);padding:10px 14px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0}
+.mt-note-btn:active{opacity:.85}
 .mt-saving{font-size:11px;color:var(--faint);text-align:center;padding:4px 14px 8px;display:none}
 
 
@@ -600,8 +606,11 @@ function formatDateDMY(dateStr) {
   return s;
 }
 
-// ══ CONFIG — update this URL after deploying your AppScript ══
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCgWg4a_qta8a90epn3Cw_rKRofVi2WTc2TKdXTmQrzOJfd7ys8XFbvU3NZTNsShBHCw/exec';
+// ════════════════════════════════════════════════════════════════
+// PASTE YOUR APPS SCRIPT WEB APP URL BELOW (ends in /exec)
+// ════════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYDbm0z4r4rB55ZKmgQWaSY4EdnGf_646l0rhqmNCcu4F2xz212ITdPgFdFMNAG8QW/exec';
+const URL_READY  = /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SCRIPT_URL);
 const PE = { High:'🔴', Medium:'🟡', Low:'🔵' };
 const STATUS_LABEL = { 'Pending':'⏳ Pending','In Progress':'🔄 In Progress','Done':'✅ Done','On Hold':'⏸ On Hold' };
 let allTasks=[], charts={}, dashLoaded=false;
@@ -623,42 +632,106 @@ function showScreen(id){
   if(id==='update'){ selTask=null; selStatus=''; renderQuickList(); }
 }
 
-// ══ FETCH via JSONP ══════════════════════════════════════════════
-function fetchTasks(){
+// ══ DATA LAYER — cached, prefetched, retried ═══════════════════
+const CACHE_KEY='sm_tasks_cache_v2';
+let _inflight=null, _fresh=null;
+const localEdits={};   // optimistic edits shown until the sheet catches up
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function nowStamp(){return new Date().toLocaleString('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');}
+
+function applyEdits(tasks){
+  const now=Date.now();
+  return tasks.map(t=>{
+    const e=localEdits[t['Task ID']];
+    if(!e||now-e.at>180000) return t;
+    return Object.assign({},t,e.fields);
+  });
+}
+function recordEdit(id,fields){
+  localEdits[id]={at:Date.now(),fields:Object.assign({},(localEdits[id]||{}).fields,fields)};
+  _fresh=null;
+  const c=readCache(); if(c) writeCache(applyEdits(c));
+}
+function readCache(){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');return c&&Array.isArray(c.tasks)?applyEdits(c.tasks):null;}catch(e){return null;}}
+function writeCache(tasks){try{localStorage.setItem(CACHE_KEY,JSON.stringify({t:Date.now(),tasks}));}catch(e){}}
+
+function jsonp(ms){
   return new Promise((resolve,reject)=>{
-    const cbName='_cb_'+Date.now();
+    const cbName='_cb_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
     const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();reject(new Error('Timeout'));},10000);
-    function cleanup(){clearTimeout(timer);delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Timeout'));},ms);
+    function cleanup(){clearTimeout(timer);window[cbName]=function(){};if(script.parentNode)script.parentNode.removeChild(script);}
     window[cbName]=function(data){cleanup();resolve(data);};
     script.src=SCRIPT_URL+'?callback='+cbName+'&t='+Date.now();
-    script.onerror=()=>{cleanup();reject(new Error('Script error'));};
+    script.onerror=()=>{cleanup();reject(new Error('Network error'));};
     document.head.appendChild(script);
   });
 }
 
-function postData(payload){
-  return new Promise((resolve)=>{
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-      .then(()=>resolve({success:true}))
-      .catch(()=>resolve({success:true}));
-  });
+function fetchTasks(force){
+  if(!URL_READY) return Promise.reject(new Error('NOT_CONNECTED'));
+  if(!force&&_fresh&&Date.now()-_fresh.at<30000) return Promise.resolve({tasks:applyEdits(_fresh.tasks)});
+  if(_inflight) return _inflight;
+  _inflight=jsonp(25000).catch(()=>jsonp(25000)).then(json=>{
+    _inflight=null;
+    if(!json||json.error) throw new Error(json&&json.error||'Bad response');
+    const tasks=(json.tasks||[]).filter(t=>t['Task Name']&&String(t['Task Name']).trim()!=='');
+    _fresh={at:Date.now(),tasks}; writeCache(tasks);
+    return {tasks:applyEdits(tasks)};
+  },err=>{_inflight=null;throw err;});
+  return _inflight;
 }
 
+function postData(payload){
+  _fresh=null;
+  if(!URL_READY){showToast('App not connected. Script URL missing.');return Promise.resolve({success:false});}
+  try{
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(()=>{});
+  }catch(e){}
+  return Promise.resolve({success:true});   // optimistic: UI never waits on Google
+}
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#2d5a3d;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:85vw;text-align:center';
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+}
+
+function errorBlock(retryFn){
+  const msg=URL_READY
+    ?'<div style="font-weight:500;margin-bottom:8px">Could not reach the task sheet</div><div style="font-size:13px;color:var(--faint)">Check your internet connection and try again.</div>'
+    :'<div style="font-weight:500;margin-bottom:8px">App not connected yet</div><div style="font-size:13px;color:var(--faint)">The Apps Script URL has not been added to this page.</div>';
+  return '<div class="empty" style="padding:40px 20px">'+msg+'<button onclick="'+retryFn+'" style="margin-top:14px;padding:9px 22px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer">Try again</button></div>';
+}
+
+// Start loading the moment the page opens (while the PIN is being typed)
+if(URL_READY){ fetchTasks().catch(()=>{}); }
+
 // ══ DASHBOARD ════════════════════════════════════════════════════
+function activeDashTab(){const a=document.querySelector('#screen-dashboard .tab-panel.active');return a?a.id.replace('dtab-',''):'overview';}
+function renderDashboard(){
+  renderOverview(allTasks);
+  const id=activeDashTab();
+  if(id==='today') renderToday(allTasks);
+  if(id==='team')  renderTeam(allTasks);
+  if(id==='board') renderBoard(allTasks);
+}
 async function loadDashboard(force){
   if(dashLoaded&&!force) return;
-  document.getElementById('overviewContent').innerHTML='<div class="loading"><div class="spinner"></div>Loading live data...</div>';
-  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
-  charts={};
+  if(!allTasks.length){
+    const cached=readCache();
+    if(cached&&cached.length){allTasks=cached;renderDashboard();}
+    else{['overviewContent','todayContent','teamContent','boardContent'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading"><div class="spinner"></div>Loading tasks...</div>';});}
+  }
   try{
-    const json=await fetchTasks();
-    allTasks=(json.tasks||[]).filter(t=>t['Task Name']&&String(t['Task Name']).trim()!=='');
-    dashLoaded=true;
-    renderOverview(allTasks);
+    const json=await fetchTasks(force);
+    allTasks=json.tasks; dashLoaded=true; renderDashboard();
+    if(force) showToast('Updated');
   }catch(err){
-    if(allTasks.length){ renderOverview(allTasks); }
-    else{ document.getElementById('overviewContent').innerHTML='<div class="empty" style="padding:40px 20px"><div style="font-size:28px;margin-bottom:12px">⚠️</div><div style="font-weight:500;margin-bottom:8px">Could not load data</div><div style="font-size:13px;color:var(--faint)">Check your Apps Script deployment.<br>Tap Refresh to try again.</div></div>'; }
+    if(allTasks.length){ renderDashboard(); showToast('Showing saved data. Could not refresh.'); }
+    else{ ['overviewContent','todayContent','teamContent','boardContent'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=errorBlock('loadDashboard(true)');}); }
   }
 }
 
@@ -938,10 +1011,10 @@ async function saveUpdate(){
   const btn=document.getElementById('saveUpdateBtn');
   btn.disabled=true; btn.textContent='Saving...';
   const note=document.getElementById('updateNote').value.trim();
-  const payload={action:'update',taskId:selTask['Task ID'],status:selStatus,notes:note};
+  const payload={action:'update',taskId:selTask['Task ID'],status:selStatus,notes:note,noteBy:(currentUser?currentUser.name:'Manager')};
   try{await postData(payload);}catch(e){console.warn(e);}
   const idx=allTasks.findIndex(t=>t['Task ID']===selTask['Task ID']);
-  if(idx>-1){allTasks[idx]['Status']=selStatus;if(note)allTasks[idx]['Notes']=note;}
+  if(idx>-1){allTasks[idx]['Status']=selStatus;if(note)allTasks[idx]['Notes']=(allTasks[idx]['Notes']?allTasks[idx]['Notes']+'\n':'')+nowStamp()+' '+(currentUser?currentUser.name:'Manager')+': '+note; recordEdit(allTasks[idx]['Task ID'],{Status:allTasks[idx]['Status'],Notes:allTasks[idx]['Notes']});}
   document.getElementById('updSuccess').style.display='block';
   document.getElementById('taskResultArea').innerHTML='';
   document.getElementById('searchInput').value='';
@@ -1035,9 +1108,9 @@ async function saveBModal(){
   const btn=document.getElementById('bmodalSave');
   btn.disabled=true; btn.textContent='Saving...';
   const note=document.getElementById('bmodalNote').value.trim();
-  try{await postData({action:'update',taskId:bmodalTask['Task ID'],status:bmodalStatus,notes:note});}catch(e){console.warn(e);}
+  try{await postData({action:'update',taskId:bmodalTask['Task ID'],status:bmodalStatus,notes:note,noteBy:(currentUser?currentUser.name:'Manager')});}catch(e){console.warn(e);}
   const idx=allTasks.findIndex(t=>t['Task ID']===bmodalTask['Task ID']);
-  if(idx>-1){allTasks[idx]['Status']=bmodalStatus;if(note)allTasks[idx]['Notes']=note;}
+  if(idx>-1){allTasks[idx]['Status']=bmodalStatus;if(note)allTasks[idx]['Notes']=(allTasks[idx]['Notes']?allTasks[idx]['Notes']+'\n':'')+nowStamp()+' '+(currentUser?currentUser.name:'Manager')+': '+note; recordEdit(allTasks[idx]['Task ID'],{Status:allTasks[idx]['Status'],Notes:allTasks[idx]['Notes']});}
   document.getElementById('bmodalBg').classList.remove('open');
   bmodalTask=null; bmodalStatus='';
   renderBoard(allTasks);
@@ -1054,19 +1127,34 @@ function initMemberView(name){
   loadMemberTasks();
 }
 
-async function loadMemberTasks(){
-  document.getElementById('mvTabOpen').innerHTML='<div class="loading"><div class="spinner"></div>Loading your tasks...</div>';
+function mineOnly(ts){return ts.filter(t=>String(t['Assigned To']||'').trim().toLowerCase()===memberName.toLowerCase());}
+async function loadMemberTasks(force){
+  const cached=readCache();
+  if(cached){memberTasks=mineOnly(cached);renderMemberView(true);}
+  else{document.getElementById('mvTabOpen').innerHTML='<div class="loading"><div class="spinner"></div>Loading your tasks...</div>';}
   try{
-    const json=await fetchTasks();
-    const all=(json.tasks||[]).filter(t=>t['Task Name']&&String(t['Task Name']).trim()!=='');
-    memberTasks=all.filter(t=>(t['Assigned To']||'').toLowerCase()===memberName.toLowerCase());
-    renderMemberView();
+    const json=await fetchTasks(force);
+    memberTasks=mineOnly(json.tasks); renderMemberView(false);
   }catch(err){
-    document.getElementById('mvTabOpen').innerHTML='<div class="empty" style="padding:40px 20px"><div style="font-size:24px;margin-bottom:10px">⚠️</div>Could not load tasks.<br><button onclick="loadMemberTasks()" style="margin-top:12px;padding:8px 20px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer">Try Again</button></div>';
+    if(!cached) document.getElementById('mvTabOpen').innerHTML=errorBlock('loadMemberTasks(true)');
+    else showToast('Showing saved data. Could not refresh.');
   }
 }
 
-function renderMemberView(){
+async function mvAddNote(id){
+  const ta=document.getElementById('mn-'+id); if(!ta) return;
+  const txt=ta.value.trim(); if(!txt){ta.focus();return;}
+  await postData({action:'update',taskId:id,notes:txt,noteBy:memberName});
+  const t=memberTasks.find(x=>x['Task ID']===id);
+  const line=nowStamp()+' '+memberName+': '+txt;
+  const updated=(t&&t['Notes']?t['Notes']+'\n':'')+line;
+  if(t) t['Notes']=updated;
+  recordEdit(id,{Notes:updated});
+  renderMemberView(true);
+  showToast('Note added');
+}
+
+function renderMemberView(skipDeepLink){
   const open=memberTasks.filter(t=>t['Status']!=='Done');
   const done=memberTasks.filter(t=>t['Status']==='Done');
   const pending=memberTasks.filter(t=>t['Status']==='Pending').length;
@@ -1094,7 +1182,11 @@ function renderMemberView(){
         <span>${PE[t['Priority']]||''} ${t['Priority']||''}</span>
         ${t['Category']?`<span>${t['Category']}</span>`:''}
       </div>
-      ${t['Notes']?`<div class="mt-notes">"${t['Notes']}"</div>`:''}
+      ${t['Notes']?`<div class="mt-notes">${esc(t['Notes']).replace(/\n/g,'<br>')}</div>`:''}
+      <div class="mt-note-wrap">
+        <textarea class="mt-note" id="mn-${t['Task ID']}" rows="1" placeholder="Add a note or update..."></textarea>
+        <button class="mt-note-btn" onclick="mvAddNote('${t['Task ID']}')">Add</button>
+      </div>
       ${rawSt!=='Done'?`
       <div class="mt-actions">
         <button class="mt-act${rawSt==='Pending'?' active-pending':''}" onclick="mvUpdateStatus('${t['Task ID']}','Pending',this)">⏳ Pending</button>
@@ -1115,7 +1207,7 @@ function renderMemberView(){
     : '<div class="empty" style="padding:30px 20px">No completed tasks yet.</div>';
 
   // ── Deep link: scroll to task + auto-apply status from email button ──
-  if(window._deepLinkTask){
+  if(window._deepLinkTask&&!skipDeepLink){
     const targetId='mc-'+window._deepLinkTask;
     setTimeout(()=>{
       const el=document.getElementById(targetId);
@@ -1159,19 +1251,16 @@ function renderMemberView(){
 
 async function mvUpdateStatus(taskId,newStatus,btn){
   const card=document.getElementById('mc-'+taskId);
-  const saving=document.getElementById('ms-'+taskId);
-  // optimistic UI
-  card.querySelectorAll('.mt-act').forEach(b=>b.className='mt-act');
+  if(card) card.querySelectorAll('.mt-act').forEach(b=>b.className='mt-act');
   btn.classList.add('active-'+newStatus.toLowerCase().replace(/\s/g,''));
-  if(saving)saving.style.display='block';
-  try{await postData({action:'update',taskId,status:newStatus});}catch(e){console.warn(e);}
-  const idx=memberTasks.findIndex(t=>t['Task ID']===taskId);
-  if(idx>-1) memberTasks[idx]['Status']=newStatus;
-  // Also update allTasks so board/overview stay in sync
-  const gi=allTasks.findIndex(t=>t['Task ID']===taskId);
-  if(gi>-1) allTasks[gi]['Status']=newStatus;
-  // Re-render after short delay
-  setTimeout(()=>renderMemberView(),600);
+  await postData({action:'update',taskId,status:newStatus});
+  const fields={Status:newStatus};
+  if(newStatus==='Done') fields['Completed At']=nowStamp();
+  const t=memberTasks.find(x=>x['Task ID']===taskId); if(t) Object.assign(t,fields);
+  const g=allTasks.find(x=>x['Task ID']===taskId); if(g) Object.assign(g,fields);
+  recordEdit(taskId,fields);
+  showToast(newStatus==='Done'?'Marked as done':'Status: '+newStatus);
+  setTimeout(()=>renderMemberView(true),350);
 }
 
 function switchMvTab(id,btn){
